@@ -1,12 +1,33 @@
 {
-  "userId": "u_4886111579d6765a",
-  "projectId": "esp32 demo",
+  "schemaVersion": 2,
   "name": "esp32demo",
-  "board": {
-    "fqbn": "esp32:esp32:esp32s2"
+  "target": {
+    "framework": "arduino",
+    "board": "esp32:esp32:esp32s2",
+    "options": {
+      "CDCOnBoot": "default",
+      "CPUFreq": "240",
+      "DebugLevel": "none",
+      "DFUOnBoot": "default",
+      "EraseFlash": "none",
+      "FlashFreq": "80",
+      "FlashMode": "qio",
+      "FlashSize": "4M",
+      "JTAGAdapter": "default",
+      "MSCOnBoot": "default",
+      "PartitionScheme": "default",
+      "PSRAM": "disabled",
+      "UploadMode": "default",
+      "UploadSpeed": "921600",
+      "ZigbeeMode": "default"
+    }
   },
-  "selections": null,
-  "serial": null,
+  "serial": {
+    "baudRate": 115200
+  },
+  "build": {
+    "properties": []
+  },
   "createdAt": "2026-10-28T12:38:28.171Z",
-  "updatedAt": "2026-10-28T12:38:28.171Z"
+  "updatedAt": "2026-11-02T09:41:26.180Z"
 }
