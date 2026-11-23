@@ -1,123 +1,75 @@
-// ESP32-S2 - 4 LED blink patterns on GPIO 1, 2, 3, 4
-// Patterns cycle automatically, each running for a few seconds.
+// ESP32-S2 Dev Board - 5 bulb light pattern
+// Bulbs on ports 1-5 (assumed to be GPIO 1-5). Edit BULB_PINS if wired differently.
+// If your bulbs/relay board are active-LOW, set ACTIVE_LEVEL to LOW.
 
-const uint8_t LED_PINS[] = {1, 2, 3, 4};
-const uint8_t LED_COUNT = sizeof(LED_PINS) / sizeof(LED_PINS[0]);
+const uint8_t BULB_PINS[] = {1, 2, 3, 4, 5};
+const uint8_t BULB_COUNT = sizeof(BULB_PINS) / sizeof(BULB_PINS[0]);
 
-// Write the same state to all LEDs
-void setAll(bool state) {
-  for (uint8_t i = 0; i < LED_COUNT; i++) {
-    digitalWrite(LED_PINS[i], state ? HIGH : LOW);
+const uint8_t ACTIVE_LEVEL = HIGH;
+const uint8_t INACTIVE_LEVEL = (ACTIVE_LEVEL == HIGH) ? LOW : HIGH;
+
+const uint16_t STEP_DELAY_MS = 250;   // speed of chase / fill steps
+const uint16_t BLINK_DELAY_MS = 400;  // speed of all-blink step
+
+void setBulb(uint8_t index, bool on) {
+  digitalWrite(BULB_PINS[index], on ? ACTIVE_LEVEL : INACTIVE_LEVEL);
+}
+
+void allBulbs(bool on) {
+  for (uint8_t i = 0; i < BULB_COUNT; i++) setBulb(i, on);
+}
+
+// Pattern 1: single bulb chases 1 -> 5
+void chaseForward() {
+  for (uint8_t i = 0; i < BULB_COUNT; i++) {
+    allBulbs(false);
+    setBulb(i, true);
+    delay(STEP_DELAY_MS);
   }
 }
 
-// Pattern 1: all LEDs blink together
-void patternAllBlink(uint8_t times, uint16_t delayMs) {
-  for (uint8_t t = 0; t < times; t++) {
-    setAll(true);
-    delay(delayMs);
-    setAll(false);
-    delay(delayMs);
+// Pattern 2: single bulb chases 5 -> 1
+void chaseBackward() {
+  for (int8_t i = BULB_COUNT - 1; i >= 0; i--) {
+    allBulbs(false);
+    setBulb(i, true);
+    delay(STEP_DELAY_MS);
   }
 }
 
-// Pattern 2: chase left to right, then back (ping-pong)
-void patternChase(uint8_t rounds, uint16_t delayMs) {
-  for (uint8_t r = 0; r < rounds; r++) {
-    for (int8_t i = 0; i < LED_COUNT; i++) {
-      setAll(false);
-      digitalWrite(LED_PINS[i], HIGH);
-      delay(delayMs);
-    }
-    for (int8_t i = LED_COUNT - 2; i > 0; i--) {
-      setAll(false);
-      digitalWrite(LED_PINS[i], HIGH);
-      delay(delayMs);
-    }
+// Pattern 3: bulbs turn on one by one (1 -> 5), then off one by one (5 -> 1)
+void fillAndEmpty() {
+  allBulbs(false);
+  for (uint8_t i = 0; i < BULB_COUNT; i++) {
+    setBulb(i, true);
+    delay(STEP_DELAY_MS);
   }
-  setAll(false);
-}
-
-// Pattern 3: alternate LEDs (1,3 on / 2,4 on)
-void patternAlternate(uint8_t times, uint16_t delayMs) {
-  for (uint8_t t = 0; t < times; t++) {
-    for (uint8_t i = 0; i < LED_COUNT; i++) {
-      digitalWrite(LED_PINS[i], (i % 2 == 0) ? HIGH : LOW);
-    }
-    delay(delayMs);
-    for (uint8_t i = 0; i < LED_COUNT; i++) {
-      digitalWrite(LED_PINS[i], (i % 2 == 0) ? LOW : HIGH);
-    }
-    delay(delayMs);
-  }
-  setAll(false);
-}
-
-// Pattern 4: fill up one by one, then turn off one by one
-void patternFillUp(uint8_t rounds, uint16_t delayMs) {
-  for (uint8_t r = 0; r < rounds; r++) {
-    setAll(false);
-    for (uint8_t i = 0; i < LED_COUNT; i++) {
-      digitalWrite(LED_PINS[i], HIGH);
-      delay(delayMs);
-    }
-    for (int8_t i = LED_COUNT - 1; i >= 0; i--) {
-      digitalWrite(LED_PINS[i], LOW);
-      delay(delayMs);
-    }
+  for (int8_t i = BULB_COUNT - 1; i >= 0; i--) {
+    setBulb(i, false);
+    delay(STEP_DELAY_MS);
   }
 }
 
-// Pattern 5: outside-in / inside-out
-void patternOutsideIn(uint8_t rounds, uint16_t delayMs) {
-  for (uint8_t r = 0; r < rounds; r++) {
-    setAll(false);
-    digitalWrite(LED_PINS[0], HIGH);
-    digitalWrite(LED_PINS[LED_COUNT - 1], HIGH);
-    delay(delayMs);
-    setAll(false);
-    digitalWrite(LED_PINS[1], HIGH);
-    digitalWrite(LED_PINS[LED_COUNT - 2], HIGH);
-    delay(delayMs);
+// Pattern 4: all bulbs blink together 3 times
+void blinkAll() {
+  for (uint8_t n = 0; n < 3; n++) {
+    allBulbs(true);
+    delay(BLINK_DELAY_MS);
+    allBulbs(false);
+    delay(BLINK_DELAY_MS);
   }
-  setAll(false);
-}
-
-// Pattern 6: random sparkle
-void patternRandom(uint8_t steps, uint16_t delayMs) {
-  for (uint8_t s = 0; s < steps; s++) {
-    for (uint8_t i = 0; i < LED_COUNT; i++) {
-      digitalWrite(LED_PINS[i], random(2));
-    }
-    delay(delayMs);
-  }
-  setAll(false);
 }
 
 void setup() {
-  for (uint8_t i = 0; i < LED_COUNT; i++) {
-    pinMode(LED_PINS[i], OUTPUT);
-    digitalWrite(LED_PINS[i], LOW);
+  for (uint8_t i = 0; i < BULB_COUNT; i++) {
+    pinMode(BULB_PINS[i], OUTPUT);
   }
-  randomSeed(esp_random());
+  allBulbs(false);
 }
 
 void loop() {
-  patternAllBlink(5, 250);
-  delay(300);
-
-  patternChase(3, 120);
-  delay(300);
-
-  patternAlternate(6, 200);
-  delay(300);
-
-  patternFillUp(3, 150);
-  delay(300);
-
-  patternOutsideIn(6, 200);
-  delay(300);
-
-  patternRandom(20, 120);
-  delay(500);
+  chaseForward();
+  chaseBackward();
+  fillAndEmpty();
+  blinkAll();
 }
